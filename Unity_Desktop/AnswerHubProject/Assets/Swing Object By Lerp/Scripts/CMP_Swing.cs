@@ -10,6 +10,8 @@ namespace SwingObjectByLerp
         public float SpeedOfSwing = .001f;
         [Tooltip("The direction that we want to swing in")]
         public Vector3 DirectionOfSwing;
+        [Tooltip("The string representation of the key command")]
+        public string ActionString = "Fire1";
         
         //The original rotation of the object
         private Quaternion OriginQuat;
@@ -17,7 +19,8 @@ namespace SwingObjectByLerp
         private Quaternion BackQuat;
         //We set alpha to .5 so that we're at a rest position when we start the script
         private float alpha = .5f;
-        private float direction = 1;
+        private float direction = -1;
+        private bool previousKeyState = false;
 
         void Awake()
         {
@@ -39,18 +42,23 @@ namespace SwingObjectByLerp
         void Update()
         {
             //Get an up/down key
-            var axis = Input.GetAxis("Vertical");
-            if (axis != 0) //If we've pressed the up/down key
+            var keystate = Input.GetButton(ActionString);
+
+            if (keystate) //If we've pressed our action button
             {
+                if(!previousKeyState)
+                {
+                    //Flip the direction
+                    direction *= -1;
+                }
                 //Set the objects rotation to the lerp of the forward and back quartenions
                 transform.rotation = Quaternion.Lerp(ForwardQuat, BackQuat, alpha);
                 //Add to our alpha so we can continue moving and multiply it by direction so that we can determine which direction it rotates
                 alpha += Time.deltaTime * SpeedOfSwing * direction;
                 //Clamp the alpha between 0 and 1 to ensure that if we hold a key down when alpha is 1 or 0, alpha will never go beyond those values
                 alpha = Mathf.Clamp01(alpha);
-                //Set direction to be the direction we pressed
-                direction = axis;
             }
+            previousKeyState = keystate;
         }
     }
 }
